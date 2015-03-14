@@ -2,7 +2,7 @@
 <head></head>
 <body>
 
-<div id="map">&nbsp;</div>
+<div id="map" style="position: absolute; left: 130px; top: 100px;">&nbsp;</div>
 
 
 <!-- include the dependencies and kartograph.js at the last-->
@@ -27,10 +27,10 @@
             /*
             * once we have data, get the svg
             */
-            $.get('/static/resources/world.svg', function(svg) {
+            $.get('/world_from_views.svg', function(svg) {
                 var div = $('#map');
                 // declare the dimensions of the map
-                var map = kartograph.map(div, 640, 420),
+                var map = kartograph.map(div, (640*2), (420*2)),
                 /*
                 * choose the color scale for the choropleth,
                 * consult chroma.js api docs for more details

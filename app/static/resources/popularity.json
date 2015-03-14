@@ -5,5 +5,15 @@
     "BRA": { "popularity": 400},
     "CAN": { "popularity": 500},
     "FRA": { "popularity": 600},
-    "RUS": { "popularity": 700}
+    "RUS": { "popularity": 700},
+    "JPN": { "popularity": 800},
+    "CHN": { "popularity": 440},
+    "GER": { "popularity": 700},
+    "DEN": { "popularity": 412},
+    "AUS": { "popularity": 300},
+    "SEN": { "popularity": 210},
+    "CIV": { "popularity": 400},
+    "NIG": { "popularity": 300},
+    "EGY": { "popularity": 200},
+    "BEL": { "popularity": 600},
 }
