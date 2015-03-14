@@ -1,7 +1,7 @@
 from app import application
 from flask import render_template, flash, redirect, url_for, request, Response
 from datetime import datetime
-from kartograph import Kartograph
+from kartograph.kartograph import Kartograph
 from .forms import SearchForm
 import json
 import os
