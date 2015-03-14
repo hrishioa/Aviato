@@ -1,0 +1,9 @@
+status: 200
+content-length: 29
+via: 1.1 swiftcache2-pgp.network.nus.edu.sg
+content-location: http://ws.geonames.org/countryCode?lat=41&lng=12&username=seansaito
+server: Apache/2.4.6 (Linux/SUSE)
+connection: keep-alive
+date: Sat, 14 Mar 2015 15:48:04 GMT
+
+ERR:15:no country code found

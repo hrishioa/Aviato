@@ -1,9 +1,66 @@
 <html>
-<head></head>
+<head>
+  <!--Bootsrap -->
+	<link href="/static/css/bootstrap.min.css" rel="stylesheet" media="screen">
+	<link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+  <link href="/static/css/simple-sidebar.css" rel="stylesheet">
+	<script src="/static/js/bootstrap.min.js"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
 <body>
+<div id="wrapper">
+  <div id="sidebar-wrapper">
+    <ul class="sidebar-nav">
+      <li class="sidebar-brand">
+        <a href="#">
+          Aviato
+        </a>
+      </li>
+      <li style="padding: 17px;">
+        <a href="#">
+          <img src="/static/resources/Emirates_logo.svg"/>
+        </a>
+      </li>
+      <li>
+        <a href="#">About</a>
+      </li>
+      <li>
+        <a href="#">Logout</a>
+      </li>
+      <li>
+        <a href="#">Contact</a>
+      </li>
+    </ul>
+  </div>
 
-<div id="map" style="position: absolute; left: 130px; top: 100px;">&nbsp;</div>
-
+  <!--
+  <div class="container">
+    <div class="navbar">
+      <div class="navbar-inner">
+        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </a>
+        <a class="brand" href="/">Aviato</a>
+        <ul class="nav">
+          <li><a href="#">About</a></li>
+          <li><a href="#">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  -->
+  <div id="page-content-wrapper">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-12">
+          <form action="" method="post" name="search">{{form.hidden_tag()}}{{form.search(size=100, placeholder="Search", class="search-query")}}</form>
+          <div id="map" style="position: absolute; left: 50px; top: 50px;">&nbsp;</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- include the dependencies and kartograph.js at the last-->
 <link rel="stylesheet" type="text/css" href="/static/css/jquery.qtip.min.css" />
@@ -12,7 +69,9 @@
 <script type="text/javascript" src="/static/js/jquery.qtip.min.js"></script>
 <script type="text/javascript" src="/static/js/chroma.min.js"></script>
 <script type="text/javascript" src="/static/js/kartograph.min.js"></script>
+{% block content %}
 
+{% if mapid != "sea" %}
 <script type="text/javascript">
     $(function() {
         var map,
@@ -27,7 +86,7 @@
             /*
             * once we have data, get the svg
             */
-            $.get('/world_from_views.svg', function(svg) {
+            $.get('/static/resources/world.svg', function(svg) {
                 var div = $('#map');
                 // declare the dimensions of the map
                 var map = kartograph.map(div, (640*2), (420*2)),
@@ -35,7 +94,7 @@
                 * choose the color scale for the choropleth,
                 * consult chroma.js api docs for more details
                 */
-                color = chroma.scale('Greens').
+                color = chroma.scale('Reds').
                         domain(countryPopularity,5,'quantiles','popularity');
                 map.setMap(svg);
                 /*
@@ -76,6 +135,72 @@
     });
 </script>
 
+{% else %}
+<script type="text/javascript">
+    $(function() {
+        var map,
+            colorscale,
+            countryPopularity = {};
+        $.fn.qtip.defaults.style.classes = 'ui-tooltip-bootstrap';
+        $.fn.qtip.defaults.style.def = false;
+        /*
+        * Now lets get the data
+        */
+        $.getJSON('/static/resources/popularity.json', function(countryPopularity) {
+            /*
+            * once we have data, get the svg
+            */
+            $.get('/static/resources/world_from_views.svg', function(svg) {
+                var div = $('#map');
+                // declare the dimensions of the map
+                var map = kartograph.map(div, (640*2), (420*2)),
+                /*
+                * choose the color scale for the choropleth,
+                * consult chroma.js api docs for more details
+                */
+                color = chroma.scale('Reds').
+                        domain(countryPopularity,5,'quantiles','popularity');
+                map.setMap(svg);
+                /*
+                * now add the layer "world" which contains the paths for the country
+                * boundaries, the map will appear empty till this is added
+                */
+                map.addLayer('world', {
+                    styles: {
+                        'stroke-width': 0.7,
+                        /*
+                        * pass the color scale function to the fill and stroke attribute
+                        */
+                        fill: function(d) {
+                            return color(countryPopularity[d.iso3]?
+                                         countryPopularity[d.iso3].popularity:
+                                         0);
+                            },
+                        stroke: function(d) {
+                            return color(countryPopularity[d.iso3]?
+                                         countryPopularity[d.iso3].popularity
+                                         :0).darker();
+                          }
+                    },
+                    /*
+                    * set tooltip content
+                    */
+                    tooltips: function(d) {
+                        return [d.iso3,
+                                countryPopularity[d.iso3]?
+                                    countryPopularity[d.iso3].popularity:
+                                    0
+                                ];
+                    }
+                });
+            });
+        });
+
+    });
+</script>
+
+{% endif %}
+{% endblock %}
 <!--
 
 <link rel="stylesheet" type="text/css" href="/static/css/jquery.qtip.min.css">

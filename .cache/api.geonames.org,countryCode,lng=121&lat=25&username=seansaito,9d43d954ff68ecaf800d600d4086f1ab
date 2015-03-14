@@ -1,0 +1,11 @@
+status: 200
+content-length: 139
+via: 1.1 swiftcache2-pgp.network.nus.edu.sg
+content-location: http://api.geonames.org/countryCode?lng=121&lat=25&username=seansaito
+server: Apache/2.2.17 (Linux/SUSE)
+last-modified: Sat, 14 Mar 2015 13:57:27 GMT
+connection: keep-alive
+date: Sat, 14 Mar 2015 14:03:15 GMT
+content-type: text/plain
+
+ERR:10:user account not enabled to use the free webservice. Please enable it on your account page: http://www.geonames.org/manageaccount 

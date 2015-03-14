@@ -2,10 +2,11 @@
     "layers":{
         "world": {
             "src": "c:/users/seansaito/dev/aviato/sample/world_countries_boundary_file_world_2002.shp",
-            "simplify": 3,
+            "simplify": 2,
             "attributes" : {
                     "iso3":"ISO_3_CODE"
-                }
-            }
+            },
+            "filter": ["ISO_3_CODE", "in", ["THA", "VNM", "PHL", "KHM", "LAO", "MYS", "SGP", "IDN"]]
+        }
     }
 }
