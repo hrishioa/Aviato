@@ -107,7 +107,8 @@
                     tooltips: function(d) {
                         return [d.iso3,
                                 countryPopularity[d.iso3]?
-                                    countryPopularity[d.iso3].popularity:
+																	"<div><p style='font-size:2em;'>" +
+                                    countryPopularity[d.iso3].popularity + "</p></div>":
                                     0
                                 ];
                     }
