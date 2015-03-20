@@ -56,14 +56,13 @@ def load_KBase(filename):
 def save_KBase(filename):
 	return true
 
-def getJSON(fields):
+def getJSON(fields, token):
 	base_url = 'https://graph.facebook.com/me'
 
 	#Sample Fields
 	#fields = 'id,name,albums.limit(5)'
 
-	url = '%s?fields=%s&access_token=%s' % \
-	    (base_url, fields, token,)
+	url = '%s?fields=%s&access_token=%s' % (base_url, fields, token)
 
 	content = requests.get(url)
 	content_json = json.loads(content.content)
@@ -115,7 +114,7 @@ def getLocations():
 
 	return locations
 
-def getLoc_and_Meta():
+def getLoc_and_Meta(token):
 	#Get Photos first to aggregate location data
 
 	#pull photos in a paged fashion
@@ -127,14 +126,14 @@ def getLoc_and_Meta():
 	locations = {}
 	locations['name'] = {}
 	loc_pointer = 0
-	photos = getJSON('photos.limit('+str(ppp)+')')
+	photos = getJSON('photos.limit('+str(ppp)+')', token)
 
 	page = 0
 	while(True):
 
 		#Get the page
 		if(page!=0):
-			photos = getJSON('photos.limit('+str(ppp)+').after('+str(after_pointer)+')')
+			photos = getJSON('photos.limit('+str(ppp)+').after('+str(after_pointer)+')', token)
 
 		after_pointer = photos['photos']['paging']['cursors']['after']
 		page_size = len(photos['photos']['data'])

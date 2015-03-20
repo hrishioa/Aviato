@@ -1,7 +1,7 @@
 from app import application
 from flask import render_template, flash, redirect, url_for, request, Response
 from datetime import datetime
-from kartograph.kartograph import Kartograph
+from kartograph import Kartograph
 from .forms import SearchForm
 import json
 import os
@@ -24,20 +24,23 @@ def southeastAsia(record):
 #Generate the svg file
 def generate():
     path = os.path.dirname(os.path.realpath(__file__))
+    script_dir = os.path.dirname(__file__)
+    rel_path="c:/users/seansaito/dev/aviato/app/world_countries_boundary_file_world_2002.shp"
+    abs_path = os.path.join(script_dir, rel_path)
     d = {
         "layers":{
             "world": {
-                "src": "world_countries_boundary_file_world_2002.shp",
+                "src": rel_path,
                 "simplify": 2,
                 "attributes" : {
                         "iso3":"ISO_3_CODE"
                 },
-                "filter": ["ISO_3_CODE", "in", ["JPN", "CHN", "KOR", "VNM"]]
+                "filter": ["ISO_3_CODE", "in", ["JPN", "CHN", "KOR", "VNM", "LAO", "KHM", "THA", "IND"]]
             }
         }
     }
     K = Kartograph()
-    K.generate(d, outfile=os.path.dirname(os.path.realpath(__file__)) + "\static\\resources\world_from_views.svg")
+    K.generate(d, outfile=os.path.dirname(os.path.realpath(__file__)) + "\static\\resources\east_asia.svg")
 
 
 @application.route("/", methods=["GET", "POST"])
@@ -46,12 +49,32 @@ def index():
     #json_data = open(os.path.dirname(os.path.realpath(__file__)) + "\worldconfig.json")
     #d = json.load(json_data)
     #generate()
+    #get_from_json("CAAMUZAqD4ZBJgBAEpEY5itDis0NgxV3fGrDOWxNAvlYrj3xdPtxmsJ9pS9DegCeZBqhx47sLZBccVlXlx4pfsslIN3f7v0ZBRXmjYUrva1yT5dJsiZCrgAMbzzRmhZBXEqi4cZAoNvAZC1ZBZAQbgVZC6k8nZAAJiK0HekhhLPgiSKZBPzczlEvQzGR93Wbv1q6lgYJLt3rmaPYFl4Jnf2wmS0tMOAk9rK6FZAm0qxfkXbBLNBZC52nqudLcTHZCQ")
     form = SearchForm()
     if form.validate_on_submit():
-        if (form.search.data.lower() == "southeast asia") | (form.search.data.lower() =="southeastasia") | (form.search.data.lower() == "sea"):
-            return render_template("index.html", form=form, mapid="sea")
-
+        if (form.search.data.lower() == "east asia") | (form.search.data.lower() =="eastasia") | (form.search.data.lower() == "ea"):
+            return render_template("index.html", form=form, mapid="east asia")
+        elif form.search.data.lower() == "age":
+            return render_template("index.html", form=form, mapid="age")
+        else:
+            return render_template("index.html", form=form, mapid="world")
+    if request.method == "POST":
+        fb_token = request.json["token"]
+        if str(fb_token) == "CAAMUZAqD4ZBJgBAEpEY5itDis0NgxV3fGrDOWxNAvlYrj3xdPtxmsJ9pS9DegCeZBqhx47sLZBccVlXlx4pfsslIN3f7v0ZBRXmjYUrva1yT5dJsiZCrgAMbzzRmhZBXEqi4cZAoNvAZC1ZBZAQbgVZC6k8nZAAJiK0HekhhLPgiSKZBPzczlEvQzGR93Wbv1q6lgYJLt3rmaPYFl4Jnf2wmS0tMOAk9rK6FZAm0qxfkXbBLNBZC52nqudLcTHZCQ":
+            get_from_json(fb_token)
     return render_template("index.html", form=form, mapid="world")
+
+@application.route("/fb", methods=["GET", "POST"])
+def fb():
+    return render_template("fb_login.html")
+
+@application.route("/token", methods=["GET", "POST"])
+def token():
+    if request.method == "POST":
+        fb_token = request.params("token")
+        get_from_json(fb_token)
+        return render_template("token.html", token=fb_token)
+    return redirect(url_for("index"))
 
 def update_json(iso_code):
     data = ""
@@ -71,9 +94,9 @@ def update_json(iso_code):
     jsonFile.close()
     return True
 
-def get_from_json():
+def get_from_json(token):
     #Using aviato.py
-    data = getLoc_and_Meta()
+    data = getLoc_and_Meta(token)
     visited = []
     for i in range(0, len(data)-1):
         if "country" in data[i]["location"]:

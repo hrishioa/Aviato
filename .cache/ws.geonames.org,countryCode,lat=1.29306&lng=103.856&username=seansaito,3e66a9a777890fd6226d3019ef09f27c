@@ -1,0 +1,11 @@
+status: 200
+via: 1.1 swiftcache2-pgp.network.nus.edu.sg
+content-location: http://ws.geonames.org/countryCode?lat=1.29306&lng=103.856&username=seansaito
+server: Apache/2.4.6 (Linux/SUSE)
+connection: keep-alive
+cache-control: no-cache
+date: Sat, 14 Mar 2015 18:28:21 GMT
+access-control-allow-origin: *
+content-type: text/html;charset=UTF-8
+
+SG
