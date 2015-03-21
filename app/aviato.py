@@ -74,6 +74,55 @@ def getJSON(fields, token=deftoken):
 
 ###########################################################################
 
+def getJSONFriend(fid,token=deftoken,page_size=100,after=None):
+	url = 'https://graph.facebook.com/%s/photos?limit=%d&access_token=%s' % (fid,page_size,token)
+	if(after!=None):
+		url = url + '&after=%s' % after
+
+	content = requests.get(url)
+
+	data = json.loads(content.content)
+
+	return data
+
+def getFriendData(fid, token=deftoken):
+	
+	data = getJSONFriend(fid,token)
+
+	db = {}
+	db['base_id'] = fid
+	db[fid] = {}
+	db[fid]['location'] = {}
+
+	while(True):
+		try:
+			numPhotos = len(data['data'])
+		except:
+			if(verbose==True):
+				print "No photos found for user %s" % fid
+			return db
+		
+		for i in range(0,numPhotos):
+			try:
+				db[fid]['location'][len(db[fid]['location'])] = data['data'][i]['place']
+				if(verbose==True):
+					print "Added location info for user %s" % (fid)
+			except:
+				continue
+		try:
+			if('next' in data['paging']):
+				if(verbose==True):
+					print "Found next page"
+				data = json.loads(requests.get(data['paging']['next']))
+			else:
+				if(verbose==True):
+					print "No more pages. returning..."
+				return db
+		except:
+			return db
+
+
+
 
 def getData(token=deftoken):
 	#first get user data
@@ -211,6 +260,11 @@ def main():
 		outfile.write(str(json.dumps(db,indent=1)))
 
 	print "Completed Execution."
+
+	print "Getting friend data"
+
+	print getFriendData('10153128436030480')
+
 	return
 
 if __name__ == "__main__":
