@@ -5,8 +5,6 @@ import nltk
 
 verbose=False
 
-out_filename = "Hrishi"
-
 wordnet_lemmatizer = WordNetLemmatizer()
 
 KBase = {}
@@ -19,16 +17,40 @@ keywords = ['Temple','Beach','Casino','Romance',
 
 parag_token = "CAAMUZAqD4ZBJgBAOaIayqKRsRrknvu4CWzB7cZAyfcdss8OaZCe1n7LPIH7gxorBUM5OmYmlWw24zN5S0UhzWJt8H9Ww2NRhJUg7ypTjfAZC89v0tGMyCk3txx5tdynQFjmDfUCb7DA7eZC2bGJW9FOIAG7eUrbWOf1DArU6SVDtAlUN0hn955KBYTWPOopliEwmI8oZCWbM5SzHkUGuMSv"
 
-abdullah_token = "CAAMUZAqD4ZBJgBAAFo2RPL9C99iMuCZBvOMemmvp3OaI05oYSx2e3X2ruS5A5g8Gy2xVJJdf8zjMkfLCjs3a92xRCC08xYIODSjLcUsaQvvm4hTaDfF9ryfxCFnrMS3gN8NxtJmUtQFKTZB9BqLeaf4yP5fcJRNY3Bl0sz50TVGkZCKPrA79vkdzLwZBTrvlCL4tAYryfyYvm30EZBcD2Cl"
+abdullah_token = "CAAMUZAqD4ZBJgBAL50Vt366K0vhU81D2jbKK9TE0IvZAQ99oaN7ENh7lI9X636Ker3vVQ4A8Uw6cWAylfVPwXt32cts57iEOdqTA4PXjGQshbKTtaJFICeIwiPbHPsEyPiLeoAvBmZAeRCDNmtojehUZCFpnCyiEZC6mzIy7ycSfcyM2ArA82t1IBeAFjg7eWoCaDgjemeXxlkJMkxasBK41xLmMVY9tUk08T3QzZBuMZBbMEY2b7aW9"
 
 sean_token = "CAAMUZAqD4ZBJgBAA0mdnVBDDYaNPw4yoheBa7AEOKwRgKbZA4iiihmRyDzsRpe9E5LZBl6Ic0kaZCyH0ncvVk8sZCtN4R3F5ZBXB3vHh2aCnZCZCYQ0WzMIAaBYQzugJhdlbzmu1GjcLdKsm8gcQ2g9gMLtSsIDjdRsaZCiYaJRvPnoGRXDnZAratDToz2RMZB7qZAwWrWZCVarCn5IyXbQb6IjVGY"
 
 token = "CAAMUZAqD4ZBJgBAM8cFZBP8adV7iNvNPmwaIJ3HEc5MMxwxo6DVxGo9i1ZBBZC5iCB8ZCHz8gZC7kzSvUsd7IrjwZBZClFZACbvS79kZCRw4LB11ZC1XPrO76eWDHstNyRWwGWGLE6FxtW2qoaBwwlFsApERbZAuTt7BerQrh0Q1D7dpZBlBDVDhhpYhWCJqpT338kc6HLJ8ZBxwb4JN5wUGZCNrrb2maWrgnncuAZCAZD"
 
-deftoken = parag_token
+deftoken = sean_token
+
+out_filename = "Sean"
 
 app_id = "866855950022808"
 app_secret = "197e26da3c39b02f9f6a0882d78b8fe6"
+
+if len(sys.argv)>1:
+	if(sys.argv[1]=='-v'):
+		print "Verbose on."
+		verbose=True
+
+if len(sys.argv)>2:
+	if(sys.argv[2].isdigit()):
+		choice = int(sys.argv[2])
+		if(choice==1):
+			deftoken = token
+			out_filename = "hrishi"
+		elif(choice==2):
+			deftoken = parag_token
+			out_filename = "parag"
+		elif(choice==3):
+			deftoken = sean_token
+			out_filename = "sean"
+		elif(choice==4):
+			deftoken = abdullah_token
+			out_filename = "Abdulla"
+		print "User selected: %s" % out_filename
 
 #################################################
 
@@ -244,20 +266,18 @@ def getData(token=deftoken,deepScrub=False):
 			if(verbose==True):
 				print "Getting friend data for %s" % key
 			deepdata = getFriendData(key,token)
-			if(len(deepdata[deepdata['base_id']]['location'])>1):
-				db[key] = db[key]+deepdata
+			try:
+				if(len(deepdata[deepdata['base_id']]['location'])>1):
+					db[key] = db[key]+deepdata['base_id']['location']
+			except:
+				if(verbose==True):
+					print "Exception in merging friend data"
 
 
 	return db
 
 def main():
 	print "Program running..."
-
-	if len(sys.argv)>1:
-		if(sys.argv[1]=='-v'):
-			print "Verbose on."
-			global verbose
-			verbose=True
 
 	print "Base User ID: %s" % (getUser()['id'])
 	#print json.dumps(photos,indent=1)
