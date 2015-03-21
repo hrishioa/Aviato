@@ -1,11 +1,9 @@
 #from facebook import *
-import requests, json
+import requests, json, sys
 from nltk.stem import WordNetLemmatizer
 import nltk
 
-verbose = False
-
-out_filename = "Hrishi"
+verbose=False
 
 wordnet_lemmatizer = WordNetLemmatizer()
 
@@ -19,20 +17,44 @@ keywords = ['Temple','Beach','Casino','Romance',
 
 parag_token = "CAAMUZAqD4ZBJgBAOaIayqKRsRrknvu4CWzB7cZAyfcdss8OaZCe1n7LPIH7gxorBUM5OmYmlWw24zN5S0UhzWJt8H9Ww2NRhJUg7ypTjfAZC89v0tGMyCk3txx5tdynQFjmDfUCb7DA7eZC2bGJW9FOIAG7eUrbWOf1DArU6SVDtAlUN0hn955KBYTWPOopliEwmI8oZCWbM5SzHkUGuMSv"
 
-abdullah_token = "CAAMUZAqD4ZBJgBAAFo2RPL9C99iMuCZBvOMemmvp3OaI05oYSx2e3X2ruS5A5g8Gy2xVJJdf8zjMkfLCjs3a92xRCC08xYIODSjLcUsaQvvm4hTaDfF9ryfxCFnrMS3gN8NxtJmUtQFKTZB9BqLeaf4yP5fcJRNY3Bl0sz50TVGkZCKPrA79vkdzLwZBTrvlCL4tAYryfyYvm30EZBcD2Cl"
+abdullah_token = "CAAMUZAqD4ZBJgBAL50Vt366K0vhU81D2jbKK9TE0IvZAQ99oaN7ENh7lI9X636Ker3vVQ4A8Uw6cWAylfVPwXt32cts57iEOdqTA4PXjGQshbKTtaJFICeIwiPbHPsEyPiLeoAvBmZAeRCDNmtojehUZCFpnCyiEZC6mzIy7ycSfcyM2ArA82t1IBeAFjg7eWoCaDgjemeXxlkJMkxasBK41xLmMVY9tUk08T3QzZBuMZBbMEY2b7aW9"
 
 sean_token = "CAAMUZAqD4ZBJgBAA0mdnVBDDYaNPw4yoheBa7AEOKwRgKbZA4iiihmRyDzsRpe9E5LZBl6Ic0kaZCyH0ncvVk8sZCtN4R3F5ZBXB3vHh2aCnZCZCYQ0WzMIAaBYQzugJhdlbzmu1GjcLdKsm8gcQ2g9gMLtSsIDjdRsaZCiYaJRvPnoGRXDnZAratDToz2RMZB7qZAwWrWZCVarCn5IyXbQb6IjVGY"
 
 token = "CAAMUZAqD4ZBJgBAM8cFZBP8adV7iNvNPmwaIJ3HEc5MMxwxo6DVxGo9i1ZBBZC5iCB8ZCHz8gZC7kzSvUsd7IrjwZBZClFZACbvS79kZCRw4LB11ZC1XPrO76eWDHstNyRWwGWGLE6FxtW2qoaBwwlFsApERbZAuTt7BerQrh0Q1D7dpZBlBDVDhhpYhWCJqpT338kc6HLJ8ZBxwb4JN5wUGZCNrrb2maWrgnncuAZCAZD"
 
-token = token
+deftoken = sean_token
+
+out_filename = "Sean"
 
 app_id = "866855950022808"
 app_secret = "197e26da3c39b02f9f6a0882d78b8fe6"
 
+if len(sys.argv)>1:
+	if(sys.argv[1]=='-v'):
+		print "Verbose on."
+		verbose=True
+
+if len(sys.argv)>2:
+	if(sys.argv[2].isdigit()):
+		choice = int(sys.argv[2])
+		if(choice==1):
+			deftoken = token
+			out_filename = "hrishi"
+		elif(choice==2):
+			deftoken = parag_token
+			out_filename = "parag"
+		elif(choice==3):
+			deftoken = sean_token
+			out_filename = "sean"
+		elif(choice==4):
+			deftoken = abdullah_token
+			out_filename = "Abdulla"
+		print "User selected: %s" % out_filename
+
 #################################################
 
-def getKWJSON(keywords):
+def getKWJSON(keywords=keywords):
 	kw_json = {}
 
 	tag = nltk.pos_tag(keywords)
@@ -56,7 +78,10 @@ def load_KBase(filename):
 def save_KBase(filename):
 	return true
 
-def getJSON(fields, token):
+def getUser(token=deftoken):
+	return getJSON('name',token)
+
+def getJSON(fields, token=deftoken):
 	base_url = 'https://graph.facebook.com/me'
 
 	#Sample Fields
@@ -69,52 +94,71 @@ def getJSON(fields, token):
 
 	return content_json
 
-def getLocations():
-	#Get Photos first to aggregate location data
+###########################################################################
 
-	#pull photos in a paged fashion
-	#photos per page
-	ppp = page_size = 100
+def getJSONFriend(fid,token=deftoken,page_size=100,after=None):
+	url = 'https://graph.facebook.com/%s/photos?limit=%d&access_token=%s' % (fid,page_size,token)
+	if(after!=None):
+		url = url + '&after=%s' % after
 
-	#Null pointer value for the after pointer TODO investigate and change
-	nullval = None
-	locations = {}
-	locations['name'] = {}
-	loc_pointer = 0
-	photos = getJSON('photos.limit('+str(ppp)+')')
+	content = requests.get(url)
 
-	page = 0
+	data = json.loads(content.content)
+
+	return data
+
+def getFriendData(fid, token=deftoken, deepScrub=False):
+	
+	data = getJSONFriend(fid,token)
+
+	db = {}
+	db['base_id'] = fid
+	db[fid] = {}
+	db[fid]['location'] = {}
+
 	while(True):
+		try:
+			numPhotos = len(data['data'])
+		except:
+			if(verbose==True):
+				print "No photos found for user %s" % fid
+			return db
+		
+		for i in range(0,numPhotos):
+			try:
+				db[fid]['location'][len(db[fid]['location'])] = data['data'][i]['place']
+				if(verbose==True):
+					print "Added location info for user %s" % (fid)
+			except:
+				continue
 
-		#Get the page
-		if(page!=0):
-			photos = getJSON('photos.limit('+str(ppp)+').after('+str(after_pointer)+')')
-
-		after_pointer = photos['photos']['paging']['cursors']['after']
-		page_size = len(photos['photos']['data'])
+		try:
+			if not('next' in data['paging']):
+				if(verbose==True):
+					print "No more pages. returning..."
+				return db
+		except:
+			return db
 
 		if(verbose==True):
-			print "Page "+str(page)+": Loaded "+str(page_size)+'photos. after = '+str(after_pointer)
-
-		#perform actions with the data at hand
-		for i in range(0,page_size):
-			try:
-				locations[loc_pointer]  = photos['photos']['data'][i]['place']
-				loc_pointer+=1
-			except:
-				if(verbose==True):
-					print "No location data found at "+str(i)
-
-		page+=1
-
-		if(page_size<ppp or after_pointer == nullval):
+			print "Found next page: %s" % data['paging']['next']
+			data = json.loads(requests.get(data['paging']['next']).content)
 			if(verbose==True):
-				print "Page size is "+str(page_size)+". Qutting."
-			break
+				print "Got next page:"
 
-	return locations
 
-def getLoc_and_Meta(token):
+def getData(token=deftoken,deepScrub=False):
+	#first get user data
+	base_user = getUser()
+
+	#initialize database and add users
+	db = {}
+	db[base_user['id']] = {}
+	db['base_id'] = base_user['id']
+	db[base_user['id']]['profile'] = getJSON('')
+
+	db[base_user['id']]['keywords'] = getKWJSON()
+
 	#Get Photos first to aggregate location data
 
 	#pull photos in a paged fashion
@@ -123,8 +167,7 @@ def getLoc_and_Meta(token):
 
 	#Null pointer value for the after pointer TODO investigate and change
 	nullval = None
-	locations = {}
-	locations['name'] = {}
+	db[base_user['id']]['location'] = {}
 	loc_pointer = 0
 	photos = getJSON('photos.limit('+str(ppp)+')', token)
 
@@ -143,20 +186,53 @@ def getLoc_and_Meta(token):
 
 		#perform actions with the data at hand
 		for i in range(0,page_size):
+			location = False
+
 			try:
-				#Location Data
-				locations[loc_pointer]  = photos['photos']['data'][i]['place']
-				loc_pointer+=1
+				location = photos['photos']['data'][i]['place']
 			except:
 				if(verbose==True):
 					print "location data not found at "+str(i)
 
+			if(location != False):
+				#Location Data
+				db[base_user['id']]['location'][loc_pointer]  = location
+				loc_pointer+=1	
+
+				#Also add the location to any people tagged here
+				for k in range(0,len(photos['photos']['data'][i]['tags']['data'])):
+					if not( 'id' in photos['photos']['data'][i]['tags']['data'][k]):
+						if(verbose==True):
+							print "Tagger: id not found."
+						continue
+
+					tagged_id = photos['photos']['data'][i]['tags']['data'][k]['id']
+					if(tagged_id == db['base_id']):
+						if(verbose==True):
+							print "Tagger: tagged_id is the same as base_id, skipping"
+						continue
+
+					#check to see if the user is already present, if not create and add the location data
+					if tagged_id not in db:
+						if(verbose==True):
+							print "Tagger: Creating new database"
+						db[tagged_id] = {}
+						db[tagged_id]['location'] = {} 
+					else:
+						if(verbose==True):
+							print "Tagger: Found tagged id %s in database" % (tagged_id)
+
+					db[tagged_id]['location'][len(db[tagged_id]['location'])] = location
+					
+					if(verbose==True):
+						print "Successful tag added to %s" % (tagged_id)
+			
 			try:
 				#Extract Keywords
 				desc = photos['photos']['data'][i]['name']
-				for key,value in kw_json.items():
+				for key,value in db[base_user['id']]['keywords'].items():
 					if key in desc:
-						kw_json[key] += 1
+						db[base_user['id']]['keywords'][key] += 1
 			except:
 				if(verbose==True):
 					print "name data not found at "+str(i)
@@ -169,9 +245,9 @@ def getLoc_and_Meta(token):
 				all_comments = ""
 				for j in range(0,comments_no):
 					all_comments = all_comments+str(photos['photos']['data'][i]['comments']['data'][j]['message'])+" "
-				for key,value in kw_json.items():
+				for key,value in db[base_user['id']]['keywords'].items():
 					if key in all_comments:
-						kw_json[key] += 1
+						db[base_user['id']]['keywords'][key] += 1
 			except:
 				if(verbose==True):
 					print "Comment data not found at "+str(i)
@@ -183,27 +259,41 @@ def getLoc_and_Meta(token):
 				print "Page size is "+str(page_size)+". Qutting."
 			break
 
-	return locations
+	if(deepScrub==True):
+		for key,value in db.items():
+			if(key==db['base_id'] or key=='base_id' or value=='base_id'):
+				continue
+			if(verbose==True):
+				print "Getting friend data for %s" % key
+			deepdata = getFriendData(key,token)
+			try:
+				if(len(deepdata[deepdata['base_id']]['location'])>1):
+					db[key] = db[key]+deepdata['base_id']['location']
+			except:
+				if(verbose==True):
+					print "Exception in merging friend data"
 
-###########################################################################
+
+	return db
 
 def main():
 	print "Program running..."
 
-
+	print "Base User ID: %s" % (getUser()['id'])
 	#print json.dumps(photos,indent=1)
 
-	kw_json = getKWJSON(keywords)
+	
+	db = getData(deepScrub=True)
 
-	locations = getLoc_and_Meta()
+	if(verbose==True):
+		print "Dumping data to %s." % (out_filename)
 
 	if(out_filename!=None):
-		outfile = open(out_filename+'_loc.txt','w')
-		outfile.write(str(json.dumps(locations,indent=1)))
-		outfile = open(out_filename+'_nlp.txt','w')
-		outfile.write(str(json.dumps(kw_json,indent=1)))
+		outfile = open(out_filename+'_data.txt','w')
+		outfile.write(str(json.dumps(db,indent=1)))
+	
+	print "Completed Execution."
 
-	print len(locations)
 	return
 
 if __name__ == "__main__":
