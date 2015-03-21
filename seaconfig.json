@@ -1,0 +1,14 @@
+{
+    "layers": {
+        "bounds" :{
+            "src": "sample/world_countries_boundary_file_world_2002.shp",
+            "mode": "polygons",
+			"simplify": 2,
+            "data": {
+                "layer": "countries",
+                "filter" : ["ISO_3", "in", ["PHL", "MYS", "THA", "VNM", "LAO", "SGP", "IDN", "KHM", "BRN", "TLS", "MMR"]]
+             }
+        }
+}
+
+}

@@ -47,25 +47,185 @@
 
 {% block content %}
 
+<script type="text/javascript">
+$(function() {
+    var map, c, scale, updateMap, symbols = [];
+    $.fn.qtip.defaults.style.classes = 'ui-tooltip-bootstrap';
+    $.fn.qtip.defaults.style.def = false;
+    c = $('#map');
+    c.height(c.width()*.5);
+    map = kartograph.map('#map');
+    map.loadMap('/static/resources/sea.svg', function() {
+        map.loadCSS('/static/resources/style2.css', function() {
+            map.addLayer('graticule');
+            map.addLayer('graticule_1');
+            $.getJSON('/static/resources/sea_data_3d.json', function(countries) {
+
+                updateMap = function() {
+                    var prop = $('.dataset.btn-primary').data('val')
+                        + $('.year.btn-primary').html()
+                    scale = kartograph.scale.linear(countries, prop);
+                    $.each(countries, function(i, c) {
+                        var bar, pts;
+                        pts = [c.ll, [c.ll[0], c.ll[1], scale(c[prop])]];
+                        if (symbols[i]) {
+                            bar = symbols[i];
+                            if (Raphael.svg) bar.animate({ path: map.getGeoPathStr(pts) }, 500);
+                            else bar.attr('path', map.getGeoPathStr(pts));
+                        } else {
+                            bar = map.addGeoPath([c.ll,c.ll]);
+                            bar.attr({
+                                stroke: '#024',
+                                opacity: .6,
+                                'stroke-width': 4,
+                                fill: 'none',
+                                'stroke-linecap': 'square'
+                            });
+                            if (Raphael.svg) {
+                                bar.animate({ path: map.getGeoPathStr(pts) }, 500);
+                                bar.node.setAttribute('title', c.Country);
+                                setTimeout(function() {
+                                    $(bar.node).qtip({
+                                        content: {
+                                            title: c.Country,
+                                            text: c[prop]
+                                        },
+                                        position: {
+                                            target: 'mouse',
+                                            viewport: $(window),
+                                            adjust: { x:7, y:7}
+                                        },
+                                    }, 800);
+                                });
+                            } else {
+                                bar.attr('path', map.getGeoPathStr(pts));
+                            }
+                            symbols.push(bar);
+                        }
+                    });
+                }
+                updateMap();
+            });
+        });
+    }, { padding: -150 });
+    $('.btn').click(function(event) {
+        var tgt = $(event.target), par = tgt.parent();
+        $('.btn', par).removeClass('btn-primary');
+        tgt.addClass('btn-primary');
+        updateMap();
+    });
+});
+</script>
+
+<!--
+<script type="text/javascript">
+$(function() {
+  var map, c, scale, updateMap, symbols = [];
+
+  $.fn.qtip.defaults.style.classes="ui-tooltip-bootstrap";
+  $.fn.qtip.defaults.style.def = false;
+
+  c = $("#map");
+   map = kartograph.map("#map", (640*2), (420*2));
+
+   map.loadMap("/static/resources/sea.svg", function() {
+
+     map.loadCSS("/static/css/style2.css", function() {
+
+       map.addLayer("graticule");
+       map.addLayer("graticule_1");
+
+       $.getJSON("/static/resources/sea_data_3d.json", function(countries) {
+
+         updateMap = function() {
+           var prop = $(".dataset.btn-primary").data("val");
+
+           scale = kartograph.scale.linear(countries, prop);
+
+           $.each(countries, function(i, c) {
+             var bar, pts;
+
+             pts = [c.ll, [c.ll[0], c.ll[1], scale(c[prop])]];
+
+             if (symbols[i]) {
+
+               bar = symbols[i];
+               if (Raphael.svg) bar.animate({ path: map.getGeoPathStr(pts)}, 500);
+               else bar.attr("path", map.getGeoPathStr(pts));
+
+             } else {
+               bar = map.addGeoPath([c.ll, c.ll]);
+               bar.attr({
+                 stroke: "#024",
+                 opacity: 1.0,
+                 "stroke-width": 10,
+                 fill: "none",
+                 "stroke-linecap": "square"
+
+               });
+
+               if (Raphael.svg) {
+                 bar.animate({path: map.getGeoPathStr(pts)}, 500);
+                 bar.node.setAttribute("title", c);
+                 setTimeout(function() {
+                   $(bar.node).qtip({
+                     content: {
+                       title: c
+                       text: c[prop]
+                     },
+                     position: {
+                       target:"mouse",
+                       viewport: $(window),
+                       adjust: {x:7, y:7}
+                     },
+                   }, 800);
+                 });
+               } else {
+                 bar.attr("path", map.getGeoPathStr(pts));
+               }
+
+               symbols.push(bar);
+
+             }
+
+           });
+
+         }
+
+         updateMap();
+
+       });
+
+     });
 
 
 
+   }, {padding: -150});
+
+   $(".btn").click(function(event) {
+     var tgt = $(event.target), par = tgt.parent();
+     $(".btn", par).removeClass("btn-primary");
+     tgt.addClass("btn-primary");
+     updateMap();
+   });
 
 
+});
 
+</script>
+-->
 
-
-
-
-
-
-
-
-
-
-
-
-
+<div style="position:absolute; left:500px; top: 50px;">
+<span style="margin-right:1em">
+            <a class="dataset btn btn-primary" data-val="Popularity">Popularity</a>
+            <a class="dataset btn" data-val="Age">Age</a>
+</span>
+<span style="margin-right:1em">
+            <a class="year btn btn-primary">2013</a>
+            <a class="year btn">2012</a>
+</span>
+</div>
+{% endblock %}
 
 
 <!-- include the dependencies and kartograph.js at the last-->

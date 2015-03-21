@@ -19,13 +19,14 @@ def southeastAsia(record):
     mys = record['ISO_3_CODE'] == "MYS"
     sgp = record['ISO_3_CODE'] == "SGP"
     idn = record['ISO_3_CODE'] == "IDN"
+
     return thai | viet | phil | khm | lao | mys | sgp | idn
 
 #Generate the svg file
 def generate():
     path = os.path.dirname(os.path.realpath(__file__))
     script_dir = os.path.dirname(__file__)
-    rel_path="c:/users/seansaito/dev/aviato/app/world_countries_boundary_file_world_2002.shp"
+    rel_path="c:/users/seansaito/dev/aviato/app/sample/world_countries_boundary_file_world_2002.shp"
     abs_path = os.path.join(script_dir, rel_path)
     d = {
         "layers":{
@@ -35,12 +36,12 @@ def generate():
                 "attributes" : {
                         "iso3":"ISO_3_CODE"
                 },
-                "filter": ["ISO_3_CODE", "in", ["JPN", "CHN", "KOR", "VNM", "LAO", "KHM", "THA", "IND"]]
+                "filter": ["ISO_3_CODE", "in", ["PHL", "MYS", "THA", "VNM", "LAO", "SGP", "IDN", "KHM", "BRN", "TLS", "MMR"]]
             }
         }
     }
     K = Kartograph()
-    K.generate(d, outfile=os.path.dirname(os.path.realpath(__file__)) + "\static\\resources\east_asia.svg")
+    K.generate(d, outfile=os.path.dirname(os.path.realpath(__file__)) + "\static\\resources\sea.svg")
 
 
 @application.route("/", methods=["GET", "POST"])
@@ -62,7 +63,7 @@ def index():
         fb_token = request.json["token"]
         if str(fb_token) == "CAAMUZAqD4ZBJgBAEpEY5itDis0NgxV3fGrDOWxNAvlYrj3xdPtxmsJ9pS9DegCeZBqhx47sLZBccVlXlx4pfsslIN3f7v0ZBRXmjYUrva1yT5dJsiZCrgAMbzzRmhZBXEqi4cZAoNvAZC1ZBZAQbgVZC6k8nZAAJiK0HekhhLPgiSKZBPzczlEvQzGR93Wbv1q6lgYJLt3rmaPYFl4Jnf2wmS0tMOAk9rK6FZAm0qxfkXbBLNBZC52nqudLcTHZCQ":
             get_from_json(fb_token)
-    return render_template("index.html", form=form, mapid="world")
+    return render_template("index2.html", form=form, mapid="world")
 
 @application.route("/fb", methods=["GET", "POST"])
 def fb():

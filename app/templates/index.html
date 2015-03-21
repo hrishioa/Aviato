@@ -130,11 +130,11 @@
         /*
         * Now lets get the data
         */
-        $.getJSON('/static/resources/popularity.json', function(countryPopularity) {
+        $.getJSON('/static/resources/sea_data_popularity.json', function(countryPopularity) {
             /*
             * once we have data, get the svg
             */
-            $.get('/static/resources/east_asia.svg', function(svg) {
+            $.get('/static/resources/sea3.svg', function(svg) {
                 var div = $('#map');
                 // declare the dimensions of the map
                 var map = kartograph.map(div, (640*2), (420*2)),
