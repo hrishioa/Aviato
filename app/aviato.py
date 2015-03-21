@@ -114,34 +114,47 @@ def getData(token=deftoken):
 
 		#perform actions with the data at hand
 		for i in range(0,page_size):
+			location = False
+
 			try:
-				#Location Data
-				db[base_user['id']]['location'][loc_pointer]  = photos['photos']['data'][i]['place']
-				loc_pointer+=1
+				location = photos['photos']['data'][i]['place']
 			except:
 				if(verbose==True):
 					print "location data not found at "+str(i)
 
-			#Also add the location to any people tagged here
-			for k in range(0,len(photos['photos']['data'][i]['tags']['data'])):
-				if not (k in photos['photos']['data'][i]['tags']['data']):
-					continue
-				tagged_id = photos['photos']['data'][i]['tags']['data'][k]['id']
-				if(tagged_id == db['base_id']):
-					continue
-				if(verbose==True):
-					print "Found tagged id %s in database" % (tagged_id)
-				#check to see if the user is already present, if not create and add the location data
-				if tagged_id not in db:
-					db[tagged_id] = {}
-					db[tagged_id]['location'] = {} 
+			if(location != False):
+				#Location Data
+				db[base_user['id']]['location'][loc_pointer]  = location
+				loc_pointer+=1	
 
-				try:
-					db[tagged_id]['location'][len(db[tagged_id]['location'])] = photos['photos']['data'][i]['place']
-				except:
+				#Also add the location to any people tagged here
+				for k in range(0,len(photos['photos']['data'][i]['tags']['data'])):
+					if not( 'id' in photos['photos']['data'][i]['tags']['data'][k]):
+						if(verbose==True):
+							print "Tagger: id not found."
+						continue
+
+					tagged_id = photos['photos']['data'][i]['tags']['data'][k]['id']
+					if(tagged_id == db['base_id']):
+						if(verbose==True):
+							print "Tagger: tagged_id is the same as base_id, skipping"
+						continue
+
+					#check to see if the user is already present, if not create and add the location data
+					if tagged_id not in db:
+						if(verbose==True):
+							print "Tagger: Creating new database"
+						db[tagged_id] = {}
+						db[tagged_id]['location'] = {} 
+					else:
+						if(verbose==True):
+							print "Tagger: Found tagged id %s in database" % (tagged_id)
+
+					db[tagged_id]['location'][len(db[tagged_id]['location'])] = location
+					
 					if(verbose==True):
-						print "No location data or no tagging data found"
-
+						print "Successful tag added to %s" % (tagged_id)
+			
 			try:
 				#Extract Keywords
 				desc = photos['photos']['data'][i]['name']
