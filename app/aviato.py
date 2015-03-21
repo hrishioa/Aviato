@@ -3,7 +3,7 @@ import requests, json, sys
 from nltk.stem import WordNetLemmatizer
 import nltk
 
-verbose = False
+verbose=False
 
 out_filename = "Hrishi"
 
@@ -123,25 +123,24 @@ def getData(token=deftoken):
 					print "location data not found at "+str(i)
 
 			#Also add the location to any people tagged here
-			if(photos['photos']['data'][i]['tags']['data']):
-				for k in range(0,len(photos['photos']['data'][i]['tags']['data'])):
-					if not (k in photos['photos']['data'][i]['tags']['data']):
-						continue
-					tagged_id = photos['photos']['data'][i]['tags']['data'][k]['id']
-					if(tagged_id == db['base_id']):
-						continue
-					if(verbose==True):
-						print "Found tagged id %s in database" % (tagged_id)
-					#check to see if the user is already present, if not create and add the location data
-					if tagged_id not in db:
-						db[tagged_id] = {}
-						db[tagged_id]['location'] = {} 
+			for k in range(0,len(photos['photos']['data'][i]['tags']['data'])):
+				if not (k in photos['photos']['data'][i]['tags']['data']):
+					continue
+				tagged_id = photos['photos']['data'][i]['tags']['data'][k]['id']
+				if(tagged_id == db['base_id']):
+					continue
+				if(verbose==True):
+					print "Found tagged id %s in database" % (tagged_id)
+				#check to see if the user is already present, if not create and add the location data
+				if tagged_id not in db:
+					db[tagged_id] = {}
+					db[tagged_id]['location'] = {} 
 
-					try:
-						db[tagged_id]['location'][len(db[tagged_id]['location'])] = photos['photos']['data'][i]['place']
-					except:
-						if(verbose==True):
-							print "No location data or no tagging data found"
+				try:
+					db[tagged_id]['location'][len(db[tagged_id]['location'])] = photos['photos']['data'][i]['place']
+				except:
+					if(verbose==True):
+						print "No location data or no tagging data found"
 
 			try:
 				#Extract Keywords
@@ -180,18 +179,19 @@ def getData(token=deftoken):
 def main():
 	print "Program running..."
 
-	print sys.argv
-
-	if sys.argv[1]:
+	if len(sys.argv)>1:
 		if(sys.argv[1]=='-v'):
 			print "Verbose on."
+			global verbose
 			verbose=True
-
 
 	print "Base User ID: %s" % (getUser()['id'])
 	#print json.dumps(photos,indent=1)
 
 	db = getData()
+
+	if(verbose==True):
+		print "Dumping data to %s." % (out_filename)
 
 	if(out_filename!=None):
 		outfile = open(out_filename+'_data.txt','w')
