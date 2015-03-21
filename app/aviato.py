@@ -85,7 +85,7 @@ def getJSONFriend(fid,token=deftoken,page_size=100,after=None):
 
 	return data
 
-def getFriendData(fid, token=deftoken):
+def getFriendData(fid, token=deftoken, deepScrub=False):
 	
 	data = getJSONFriend(fid,token)
 
@@ -109,22 +109,23 @@ def getFriendData(fid, token=deftoken):
 					print "Added location info for user %s" % (fid)
 			except:
 				continue
+
 		try:
-			if('next' in data['paging']):
-				if(verbose==True):
-					print "Found next page"
-				data = json.loads(requests.get(data['paging']['next']))
-			else:
+			if not('next' in data['paging']):
 				if(verbose==True):
 					print "No more pages. returning..."
 				return db
 		except:
 			return db
 
+		if(verbose==True):
+			print "Found next page: %s" % data['paging']['next']
+			data = json.loads(requests.get(data['paging']['next']).content)
+			if(verbose==True):
+				print "Got next page:"
 
 
-
-def getData(token=deftoken):
+def getData(token=deftoken,deepScrub=False):
 	#first get user data
 	base_user = getUser()
 
@@ -236,6 +237,17 @@ def getData(token=deftoken):
 				print "Page size is "+str(page_size)+". Qutting."
 			break
 
+	if(deepScrub==True):
+		for key,value in db.items():
+			if(key==db['base_id'] or key=='base_id' or value=='base_id'):
+				continue
+			if(verbose==True):
+				print "Getting friend data for %s" % key
+			deepdata = getFriendData(key,token)
+			if(len(deepdata[deepdata['base_id']]['location'])>1):
+				db[key] = db[key]+deepdata
+
+
 	return db
 
 def main():
@@ -250,7 +262,8 @@ def main():
 	print "Base User ID: %s" % (getUser()['id'])
 	#print json.dumps(photos,indent=1)
 
-	db = getData()
+	
+	db = getData(deepScrub=True)
 
 	if(verbose==True):
 		print "Dumping data to %s." % (out_filename)
@@ -258,12 +271,8 @@ def main():
 	if(out_filename!=None):
 		outfile = open(out_filename+'_data.txt','w')
 		outfile.write(str(json.dumps(db,indent=1)))
-
+	
 	print "Completed Execution."
-
-	print "Getting friend data"
-
-	print getFriendData('10153128436030480')
 
 	return
 
