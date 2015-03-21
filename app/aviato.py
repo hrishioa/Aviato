@@ -1,11 +1,7 @@
 #from facebook import *
 import requests, json, sys
-from nltk.stem import WordNetLemmatizer
-import nltk
 
-verbose=False
-
-wordnet_lemmatizer = WordNetLemmatizer()
+verbose=True
 
 KBase = {}
 
@@ -55,22 +51,7 @@ if len(sys.argv)>2:
 #################################################
 
 def getKWJSON(keywords=keywords):
-	kw_json = {}
-
-	tag = nltk.pos_tag(keywords)
-
-	#build database
-	for i in range(0,len(keywords)):
-		#normalise, i.e. lemmatise and lowercase the keyword
-		pos = 'v' if tag[i][1][0].lower()=='v' else 'n'
-		norm_kw = str(wordnet_lemmatizer.lemmatize(keywords[i].lower(),pos=pos))
-		kw_json[norm_kw] = 0
-
-	#Json Created
-	if(verbose==True):
-		print kw_json
-
-	return kw_json
+	return {'surf': 0, 'kayaking': 0, 'roller coaster': 0, 'cruise': 0, 'snowboard': 0, 'outdoor': 0, 'skiing': 0, 'run': 0, 'sport': 0, 'mountain': 0, 'resort': 0, 'movie': 0, 'museum': 0, 'aquatic sports': 0, 'camp': 0, 'zoo': 0, 'romance': 0, 'religion': 0, 'hill': 0, 'beach': 0, 'temple': 0, 'spa': 0, 'shopping': 0, 'city': 0, 'dive': 0, 'wildlife': 0, 'urban exploration': 0, 'snorkel': 0, 'outdoor sports': 0, 'trek': 0, 'carnival': 0, 'hike': 0, 'casino': 0, 'yacht': 0, 'wind surfing': 0, 'jet ski': 0, 'mall': 0, 'indoor sports': 0, 'climb': 0, 'swimming': 0, 'history': 0}
 
 def load_KBase(filename):
 	return true
