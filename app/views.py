@@ -51,19 +51,22 @@ def index():
     #d = json.load(json_data)
     #generate()
     #get_from_json("CAAMUZAqD4ZBJgBAEpEY5itDis0NgxV3fGrDOWxNAvlYrj3xdPtxmsJ9pS9DegCeZBqhx47sLZBccVlXlx4pfsslIN3f7v0ZBRXmjYUrva1yT5dJsiZCrgAMbzzRmhZBXEqi4cZAoNvAZC1ZBZAQbgVZC6k8nZAAJiK0HekhhLPgiSKZBPzczlEvQzGR93Wbv1q6lgYJLt3rmaPYFl4Jnf2wmS0tMOAk9rK6FZAm0qxfkXbBLNBZC52nqudLcTHZCQ")
+
     form = SearchForm()
     if form.validate_on_submit():
         if (form.search.data.lower() == "east asia") | (form.search.data.lower() =="eastasia") | (form.search.data.lower() == "ea"):
             return render_template("index.html", form=form, mapid="east asia")
-        elif form.search.data.lower() == "age":
+        elif (form.search.data.lower() == "east asia age") | (form.search.data.lower() == "age east asia"):
             return render_template("index.html", form=form, mapid="age")
         else:
             return render_template("index.html", form=form, mapid="world")
+
     if request.method == "POST":
         fb_token = request.json["token"]
         if str(fb_token) == "CAAMUZAqD4ZBJgBAEpEY5itDis0NgxV3fGrDOWxNAvlYrj3xdPtxmsJ9pS9DegCeZBqhx47sLZBccVlXlx4pfsslIN3f7v0ZBRXmjYUrva1yT5dJsiZCrgAMbzzRmhZBXEqi4cZAoNvAZC1ZBZAQbgVZC6k8nZAAJiK0HekhhLPgiSKZBPzczlEvQzGR93Wbv1q6lgYJLt3rmaPYFl4Jnf2wmS0tMOAk9rK6FZAm0qxfkXbBLNBZC52nqudLcTHZCQ":
             get_from_json(fb_token)
-    return render_template("index2.html", form=form, mapid="world")
+
+    return render_template("index.html", form=form, mapid="world")
 
 @application.route("/fb", methods=["GET", "POST"])
 def fb():

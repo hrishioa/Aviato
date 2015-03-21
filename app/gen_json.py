@@ -20,12 +20,14 @@ sea_countries = [
 ]
 
 data = {}
-jsonFile = open("app/static/resources/sea_data.json", "w+")
+jsonFile = open("app/static/resources/sea_data_popularity.json", "w+")
 
 for country in sea_countries:
     iso3 = pycountry.countries.get(name=country).alpha3
     data[iso3] = {"popularity" : float(str(random.uniform(100, 500))[0:6])}
-    data[iso3]["age"] = float(str(random.uniform(16, 30))[0:5])
+    #data[iso3]["age"] = float(str(random.uniform(16, 30))[0:5])
+    #data[iso3] = {"age" : float(str(random.uniform(16, 30))[0:5])}
+    data[iso3]["Country"] = country
 
 jsonFile.write(json.dumps(data))
 jsonFile.close()
@@ -44,9 +46,11 @@ jsonFile = open("app/static/resources/sea_data_3d.json", "w+")
 for country in sea_countries:
     popularity = float(str(random.uniform(100, 500))[0:6])
     age = float(str(random.uniform(16, 30))[0:5])
+    coord_1 = float(ll_data[pycountry.countries.get(name=country).alpha2.lower()][0])
+    coord_2 = float(ll_data[pycountry.countries.get(name=country).alpha2.lower()][1])
     entry = {
         "Country": pycountry.countries.get(name=country).alpha3,
-        "ll": ll_data[pycountry.countries.get(name=country).alpha2.lower()],
+        "ll": [coord_1, coord_2],
         "Popularity2013": popularity,
         "Popularity2012": popularity + float(str(random.uniform(-50, 50))[0:5]),
         "Age2013": age,

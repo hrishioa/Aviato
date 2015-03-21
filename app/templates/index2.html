@@ -6,6 +6,9 @@
   <link href="/static/css/simple-sidebar.css" rel="stylesheet">
 	<script src="/static/js/bootstrap.min.js"></script>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="/static/css/jquery.qtip.min.css" />
+  <script type="text/javascript" src="/static/js/jquery.qtip.min.js"></script>
+  <script type="text/javascript" src="/static/js/jquery-1.11.2.min.js"></script>
 </head>
 <body>
 <div id="wrapper">
@@ -53,7 +56,6 @@ $(function() {
     $.fn.qtip.defaults.style.classes = 'ui-tooltip-bootstrap';
     $.fn.qtip.defaults.style.def = false;
     c = $('#map');
-    c.height(c.width()*.5);
     map = kartograph.map('#map');
     map.loadMap('/static/resources/sea.svg', function() {
         map.loadCSS('/static/resources/style2.css', function() {
@@ -229,10 +231,7 @@ $(function() {
 
 
 <!-- include the dependencies and kartograph.js at the last-->
-<link rel="stylesheet" type="text/css" href="/static/css/jquery.qtip.min.css" />
-<script type="text/javascript" src="/static/js/jquery-1.11.2.min.js"></script>
 <script type="text/javascript" src="/static/js/raphael-min.js"></script>
-<script type="text/javascript" src="/static/js/jquery.qtip.min.js"></script>
 <script type="text/javascript" src="/static/js/chroma.min.js"></script>
 <script type="text/javascript" src="/static/js/kartograph.min.js"></script>
 
