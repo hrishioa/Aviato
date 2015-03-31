@@ -1,7 +1,16 @@
 #from facebook import *
 import requests, json, sys
+<<<<<<< HEAD
 
 verbose=True
+=======
+from nltk.stem import WordNetLemmatizer
+import nltk
+
+verbose=False
+
+wordnet_lemmatizer = WordNetLemmatizer()
+>>>>>>> 7beb4e0751c660d82b02727e9cddb3a37cdd4c7d
 
 KBase = {}
 
@@ -47,6 +56,23 @@ if len(sys.argv)>2:
 			deftoken = abdullah_token
 			out_filename = "Abdulla"
 		print "User selected: %s" % out_filename
+<<<<<<< HEAD
+=======
+
+#################################################
+
+def getKWJSON(keywords=keywords):
+	kw_json = {}
+
+	tag = nltk.pos_tag(keywords)
+
+	#build database
+	for i in range(0,len(keywords)):
+		#normalise, i.e. lemmatise and lowercase the keyword
+		pos = 'v' if tag[i][1][0].lower()=='v' else 'n'
+		norm_kw = str(wordnet_lemmatizer.lemmatize(keywords[i].lower(),pos=pos))
+		kw_json[norm_kw] = 0
+>>>>>>> 7beb4e0751c660d82b02727e9cddb3a37cdd4c7d
 
 #################################################
 
@@ -127,6 +153,7 @@ def getFriendData(fid, token=deftoken, deepScrub=False):
 			if(verbose==True):
 				print "Got next page:"
 
+<<<<<<< HEAD
 
 def getData(token=deftoken,deepScrub=False):
 	#first get user data
@@ -138,6 +165,19 @@ def getData(token=deftoken,deepScrub=False):
 	db['base_id'] = base_user['id']
 	db[base_user['id']]['profile'] = getJSON('')
 
+=======
+
+def getData(token=deftoken,deepScrub=False):
+	#first get user data
+	base_user = getUser()
+
+	#initialize database and add users
+	db = {}
+	db[base_user['id']] = {}
+	db['base_id'] = base_user['id']
+	db[base_user['id']]['profile'] = getJSON('')
+
+>>>>>>> 7beb4e0751c660d82b02727e9cddb3a37cdd4c7d
 	db[base_user['id']]['keywords'] = getKWJSON()
 
 	#Get Photos first to aggregate location data

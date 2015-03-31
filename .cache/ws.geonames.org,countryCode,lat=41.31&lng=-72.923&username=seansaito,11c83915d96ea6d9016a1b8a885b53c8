@@ -1,0 +1,9 @@
+status: 200
+content-location: http://ws.geonames.org/countryCode?lat=41.31&lng=-72.923&username=seansaito
+server: Apache/2.4.6 (Linux/SUSE)
+cache-control: no-cache
+date: Sat, 21 Mar 2015 09:55:21 GMT
+access-control-allow-origin: *
+content-type: text/html;charset=UTF-8
+
+US

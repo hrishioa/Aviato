@@ -3,42 +3,61 @@
   <!--Bootsrap -->
 	<link href="/static/css/bootstrap.min.css" rel="stylesheet" media="screen">
 	<link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
-  <link href="/static/css/simple-sidebar.css" rel="stylesheet">
+  <link href="/static/css/simple-sidebar_parag.css" rel="stylesheet">
 	<script src="/static/js/bootstrap.min.js"></script>
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style>
+		.tip {
+			background-color : #FFFFFF;
+			border : 0.5px solid;
+			width: 100px;
+			height: 30px;
+			padding: 5px;
+			margin: -5px;
+		}
+		.head {
+			background-color : #FFFFFF;
+			border: 0.5px solid;
+			width: 100px;
+			height: 30px;
+			margin: -5px;
+			padding: 5px;
+		}
+		li {
+			font-family: 'Open Sans', sans-serif;
+		}
+		</style>
 </head>
 <body>
-<div id="wrapper">
-  <div id="sidebar-wrapper">
-    <ul class="sidebar-nav">
-      <li class="sidebar-brand">
-        <a href="{{url_for('fb')}}">
-          Aviato
-        </a>
-      </li>
-      <li style="position:absolute; left: 10px; top: 50px;">
-        <a href="#">
-          <img src="/static/resources/Emirates_logo.svg"/>
-        </a>
-      </li>
-      <li style="position:absolute; left: 15px; top: 150px; font-size: 120%">
-        <a href="#">About</a>
-      </li>
-      <li style="position:absolute; left: 15px; top: 190px; font-size: 120%">
-        <a href="#">Logout</a>
-      </li>
-      <li style="position:absolute; left: 15px; top: 230px; font-size: 120%">
-        <a href="#">Contact</a>
-      </li>
-    </ul>
-  </div>
+
+	<div id="wrapper">
+	  <div id="sidebar-wrapper">
+	    <ul class="sidebar-nav">
+	      <li class="sidebar-brand">
+	        <a href="{{url_for('fb')}}">
+	            <img src="/static/resources/aviato_logo_red.png">
+	        </a>
+	      </li>
+	        <li>
+	            <a href="#">About</a>
+	        </li>
+	        <li>
+	            <a href="#">Profile</a>
+	        </li>
+	        <li>
+	            <a href="#">Contact</a>
+	        </li>
+	    </ul>
+	  </div>
 
   <div id="page-content-wrapper">
     <div class="container-fluid">
       <div class="row">
         <div class="col-lg-12">
           <form action="" method="post" name="search" style="position: absolute; width: 200px; height: 30px; font-size: 27px;">{{form.hidden_tag()}}{{form.search(placeholder="Search", class="search-query")}}</form>
-          <div id="map" style="position: absolute; left: 50px; top: 50px;">&nbsp;</div>
+					<div id="chartContainer" style="position: absolute; height: 400px; width: 80%; top: 100px; left: 30px;"></div>
+          <div id="map" style="position: absolute; left: 50px; top: 450px;">&nbsp;</div>
         </div>
       </div>
     </div>
@@ -56,6 +75,81 @@
 
 {% if mapid == "world" %}
 <script type="text/javascript">
+	var data_points = [];
+
+	$.getJSON("/static/resources/popularity.json", function(countryPop) {
+		$.each(["CHN", "KHM", "LAO", "JPN", "USA", "FRA", "SGP", "MYS", "PHL", "EGY", "ITA", "IDN", "GBR", "ARE", "IND", "RUS", "KOR", "VNM",
+		"THA", "AUS", "ARG"], function(i, c) {
+			var bar =
+			{
+				y: countryPop[c].popularity,
+				label: countryPop[c].Country
+			}
+			data_points.push(bar);
+		});
+	});
+
+	window.onload = function () {
+		var chart = new CanvasJS.Chart("chartContainer", {
+
+			title:{
+				text:"Number of travellers by Country"
+
+			},
+                        animationEnabled: true,
+			axisX:{
+				interval: 1,
+				gridThickness: 0,
+				labelFontSize: 10,
+				labelFontStyle: "normal",
+				labelFontWeight: "normal",
+				labelFontFamily: "Lucida Sans Unicode"
+
+			},
+			axisY2:{
+				interlacedColor: "rgba(1,77,101,.2)",
+				gridColor: "rgba(1,77,101,.1)"
+
+			},
+
+			data: [
+			{
+				type: "bar",
+                name: "companies",
+				axisYType: "secondary",
+				color: "#b80000",
+				dataPoints: data_points /*[
+
+				{y: 5, label: "Sweden"  },
+				{y: 6, label: "Taiwan"  },
+				{y: 7, label: "Russia"  },
+				{y: 8, label: "Spain"  },
+				{y: 8, label: "Brazil"  },
+				{y: 8, label: "India"  },
+				{y: 9, label: "Italy"  },
+				{y: 9, label: "Australia"  },
+				{y: 12, label: "Canada"  },
+				{y: 13, label: "South Korea"  },
+				{y: 13, label: "Netherlands"  },
+				{y: 15, label: "Switzerland"  },
+				{y: 28, label: "Britain" },
+				{y: 32, label: "Germany"   },
+				{y: 32, label: "France"  },
+				{y: 68, label: "Japan"   },
+				{y: 73, label: "China"},
+				{y: 132, label: "US" }
+			] */
+			}
+
+			]
+		});
+
+chart.render();
+}
+</script>
+
+
+<script type="text/javascript">
     $(function() {
         var map,
             colorscale,
@@ -72,7 +166,7 @@
             $.get('/static/resources/world.svg', function(svg) {
                 var div = $('#map');
                 // declare the dimensions of the map
-                var map = kartograph.map(div, (640*2), (420*2)),
+                var map = kartograph.map(div, (640*2.0), (420*2.0)),
                 /*
                 * choose the color scale for the choropleth,
                 * consult chroma.js api docs for more details
@@ -105,12 +199,12 @@
                     * set tooltip content
                     */
                     tooltips: function(d) {
-                        return [d.iso3,
-                                countryPopularity[d.iso3]?
-																	"<div><p style='font-size:2em;'>" +
-                                    countryPopularity[d.iso3].popularity + "</p></div>":
-                                    0
-                                ];
+											return ["<div class='head'><p style = 'font-size: 1.5em;'>" + d.iso3 + "</p></div>",
+															countryPopularity[d.iso3]?
+																"<div class='tip'><p style='font-size:2.5em; top:10px;'>" +
+																	countryPopularity[d.iso3].popularity + "</p></div>":
+																	0
+															];
                     }
                 });
             });
@@ -121,6 +215,79 @@
 
 {% elif mapid =="east asia" %}
 <script type="text/javascript">
+	var data_points = [];
+
+	$.getJSON("/static/resources/sea_data_popularity.json", function(countryPop) {
+		$.each(["SGP", "PHL", "MYS", "TLS", "IDN", "BRN", "KHM", "LAO", "MMR", "VNM", "THA"], function(i, c) {
+			var bar =
+			{
+				y: countryPop[c].popularity,
+				label: countryPop[c].Country
+			}
+			data_points.push(bar);
+		});
+	});
+
+	window.onload = function () {
+		var chart = new CanvasJS.Chart("chartContainer", {
+
+			title:{
+				text:"Number of travellers by Country"
+
+			},
+                        animationEnabled: true,
+			axisX:{
+				interval: 1,
+				gridThickness: 0,
+				labelFontSize: 10,
+				labelFontStyle: "normal",
+				labelFontWeight: "normal",
+				labelFontFamily: "Lucida Sans Unicode"
+
+			},
+			axisY2:{
+				interlacedColor: "rgba(1,77,101,.2)",
+				gridColor: "rgba(1,77,101,.1)"
+
+			},
+
+			data: [
+			{
+				type: "bar",
+                name: "companies",
+				axisYType: "secondary",
+				color: "#b80000",
+				dataPoints: data_points /*[
+
+				{y: 5, label: "Sweden"  },
+				{y: 6, label: "Taiwan"  },
+				{y: 7, label: "Russia"  },
+				{y: 8, label: "Spain"  },
+				{y: 8, label: "Brazil"  },
+				{y: 8, label: "India"  },
+				{y: 9, label: "Italy"  },
+				{y: 9, label: "Australia"  },
+				{y: 12, label: "Canada"  },
+				{y: 13, label: "South Korea"  },
+				{y: 13, label: "Netherlands"  },
+				{y: 15, label: "Switzerland"  },
+				{y: 28, label: "Britain" },
+				{y: 32, label: "Germany"   },
+				{y: 32, label: "France"  },
+				{y: 68, label: "Japan"   },
+				{y: 73, label: "China"},
+				{y: 132, label: "US" }
+			] */
+			}
+
+			]
+		});
+
+chart.render();
+}
+</script>
+
+<script type="text/javascript">
     $(function() {
         var map,
             colorscale,
@@ -130,14 +297,14 @@
         /*
         * Now lets get the data
         */
-        $.getJSON('/static/resources/popularity.json', function(countryPopularity) {
+        $.getJSON('/static/resources/sea_data_popularity.json', function(countryPopularity) {
             /*
             * once we have data, get the svg
             */
-            $.get('/static/resources/east_asia.svg', function(svg) {
+            $.get('/static/resources/sea.svg', function(svg) {
                 var div = $('#map');
                 // declare the dimensions of the map
-                var map = kartograph.map(div, (640*2), (420*2)),
+                var map = kartograph.map(div, (640*1.5), (420*1.5)),
                 /*
                 * choose the color scale for the choropleth,
                 * consult chroma.js api docs for more details
@@ -171,11 +338,12 @@
                     */
                     tooltips: function(d) {
 
-                        return [d.iso3,
-                                countryPopularity[d.iso3]?
-                                    countryPopularity[d.iso3].popularity:
-                                    0
-                                ];
+											return ["<div class='head'><p style = 'font-size: 1.5em;'>" + d.iso3 + "</p></div>",
+															countryPopularity[d.iso3]?
+																"<div class='tip'><p style='font-size:2.5em; top:10px;'>" +
+																	countryPopularity[d.iso3].popularity + "</p></div>":
+																	0
+															];
                     }
                 });
             });
@@ -187,6 +355,78 @@
 
 {% elif mapid == "age" %}
 <script type="text/javascript">
+	var data_points = [];
+
+	$.getJSON("/static/resources/sea_data_age.json", function(countryAge) {
+		$.each(["SGP", "PHL", "MYS", "TLS", "IDN", "BRN", "KHM", "LAO", "MMR", "VNM", "THA"], function(i, c) {
+			var bar =
+			{
+				y: countryAge[c].age,
+				label: countryAge[c].Country
+			}
+			data_points.push(bar);
+		});
+	});
+
+	window.onload = function () {
+		var chart = new CanvasJS.Chart("chartContainer", {
+
+			title:{
+				text:"Average age of travellers by Country"
+
+			},
+                        animationEnabled: true,
+			axisX:{
+				interval: 1,
+				gridThickness: 0,
+				labelFontSize: 10,
+				labelFontStyle: "normal",
+				labelFontWeight: "normal",
+				labelFontFamily: "Lucida Sans Unicode"
+
+			},
+			axisY2:{
+				interlacedColor: "rgba(1,77,101,.2)",
+				gridColor: "rgba(1,77,101,.1)"
+
+			},
+
+			data: [
+			{
+				type: "bar",
+                name: "companies",
+				axisYType: "secondary",
+				color: "#b80000",
+				dataPoints: data_points /*[
+
+				{y: 5, label: "Sweden"  },
+				{y: 6, label: "Taiwan"  },
+				{y: 7, label: "Russia"  },
+				{y: 8, label: "Spain"  },
+				{y: 8, label: "Brazil"  },
+				{y: 8, label: "India"  },
+				{y: 9, label: "Italy"  },
+				{y: 9, label: "Australia"  },
+				{y: 12, label: "Canada"  },
+				{y: 13, label: "South Korea"  },
+				{y: 13, label: "Netherlands"  },
+				{y: 15, label: "Switzerland"  },
+				{y: 28, label: "Britain" },
+				{y: 32, label: "Germany"   },
+				{y: 32, label: "France"  },
+				{y: 68, label: "Japan"   },
+				{y: 73, label: "China"},
+				{y: 132, label: "US" }
+			] */
+			}
+
+			]
+		});
+
+chart.render();
+}
+</script>
+<script type="text/javascript">
     $(function() {
         var map,
             colorscale,
@@ -196,14 +436,14 @@
         /*
         * Now lets get the data
         */
-        $.getJSON('/static/resources/age.json', function(countryAge) {
+        $.getJSON('/static/resources/sea_data_age.json', function(countryAge) {
             /*
             * once we have data, get the svg
             */
-            $.get('/static/resources/world.svg', function(svg) {
+            $.get('/static/resources/sea.svg', function(svg) {
                 var div = $('#map');
                 // declare the dimensions of the map
-                var map = kartograph.map(div, (640*2), (420*2)),
+                var map = kartograph.map(div, (640*1.5), (420*1.5)),
                 /*
                 * choose the color scale for the choropleth,
                 * consult chroma.js api docs for more details
@@ -236,11 +476,12 @@
                     * set tooltip content
                     */
                     tooltips: function(d) {
-                        return [d.iso3,
-                                countryAge[d.iso3]?
-                                    countryAge[d.iso3].age:
-                                    0
-                                ];
+											return ["<div class='head'><p style = 'font-size: 1.5em;'>" + d.iso3 + "</p></div>",
+															countryAge[d.iso3]?
+																"<div class='tip'><p style='font-size:2.5em; top:10px;'>" +
+																	countryAge[d.iso3].age + "</p></div>":
+																	0
+															];
                     }
                 });
             });
@@ -251,7 +492,10 @@
 
 {% endif %}
 {% endblock %}
+<script type="text/javascript" src="/static/js/canvasjs.min.js"></script>
+
 <script>
+
   // This is called with the results from from FB.getLoginStatus().
 
   acToken = "";
@@ -290,7 +534,7 @@
   window.fbAsyncInit = function() {
   FB.init({
     appId      : '866855950022808',
-    cookie     : true,  // enable cookies to allow the server to access
+    cookie     : false,  // enable cookies to allow the server to access
                         // the session
     xfbml      : true,  // parse social plugins on this page
     version    : 'v2.2' // use version 2.2

@@ -1,0 +1,287 @@
+<html>
+<head>
+  <!--Bootsrap -->
+	<link href="/static/css/bootstrap.min.css" rel="stylesheet" media="screen">
+	<link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+  <link href="/static/css/simple-sidebar.css" rel="stylesheet">
+	<script src="/static/js/bootstrap.min.js"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="/static/css/jquery.qtip.min.css" />
+  <script type="text/javascript" src="/static/js/jquery.qtip.min.js"></script>
+  <script type="text/javascript" src="/static/js/jquery-1.11.2.min.js"></script>
+</head>
+<body>
+
+<!--
+<div id="wrapper">
+  <div id="sidebar-wrapper">
+    <ul class="sidebar-nav">
+      <li class="sidebar-brand">
+        <a href="{{url_for('fb')}}">
+          Aviato
+        </a>
+      </li>
+      <li style="position:absolute; left: 10px; top: 50px;">
+        <a href="#">
+          <img src="/static/resources/Emirates_logo.svg"/>
+        </a>
+      </li>
+      <li style="position:absolute; left: 15px; top: 150px; font-size: 120%">
+        <a href="#">About</a>
+      </li>
+      <li style="position:absolute; left: 15px; top: 190px; font-size: 120%">
+        <a href="#">Logout</a>
+      </li>
+      <li style="position:absolute; left: 15px; top: 230px; font-size: 120%">
+        <a href="#">Contact</a>
+      </li>
+    </ul>
+  </div>
+-->
+<div id="wrapper">
+  <div id="page-content-wrapper">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-12">
+          <form action="" method="post" name="search" style="position: absolute; width: 200px; height: 30px; font-size: 27px;">{{form.hidden_tag()}}{{form.search(placeholder="Search", class="search-query")}}</form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<link rel="stylesheet" type="text/css" href="/static/css/jquery.qtip.css">
+<script type="text/javascript" src="/static/js/jquery.qtip.min.js"></script>
+
+<script type="text/javascript">
+$(function() {
+    var map, c, scale, updateMap, symbols = [];
+
+    $.fn.qtip.defaults.style.classes = 'ui-tooltip-bootstrap';
+    $.fn.qtip.defaults.style.def = false;
+
+    c = $('#map');
+    c.height(c.width()*.5);
+
+    map = kartograph.map('#map');
+
+    map.loadMap('/static/resources/sea.svg', function() {
+
+        map.loadCSS('/static/css/style2.css', function() {
+
+            map.addLayer('graticule');
+            map.addLayer('graticule_1');
+            map.addLayer('usa');
+
+            $.getJSON('/static/resources/sea_data_3d.json', function(crimeCities) {
+
+                /*$.each(crimeCities, function(i,city) {
+                    $.each(['ViolentCrime','Rape','Murder'], function(i,prop) {
+                        $.each(['2011','2010'], function(i,yr) {
+                            city[prop+yr+'Rate'] = city[prop+yr] / city.Population;
+                        });
+                    });
+                }); */
+
+                updateMap = function() {
+
+                    var prop = $('.dataset.btn-primary').data('val')
+                        + $('.year.btn-primary').html(),
+
+                    //maxRad = $('.type.btn-primary').data('maxrad');
+
+                    scale = kartograph.scale.linear(crimeCities, prop);
+
+                    $.each(crimeCities, function(i, c) {
+                        var bar, pts;
+
+                        pts = [c.ll, [c.ll[0], c.ll[1], scale(c[prop])*500]];
+
+                        if (symbols[i]) {
+
+                            bar = symbols[i];
+                            if (Raphael.svg) bar.animate({ path: map.getGeoPathStr(pts) }, 500);
+                            else bar.attr('path', map.getGeoPathStr(pts));
+
+                        } else {
+
+                            bar = map.addGeoPath([c.ll,c.ll]);
+                            bar.attr({
+                                stroke: '#024',
+                                opacity: .6,
+                                'stroke-width': 4,
+                                fill: 'none',
+                                'stroke-linecap': 'square'
+                            });
+
+                            if (Raphael.svg) {
+                                bar.animate({ path: map.getGeoPathStr(pts) }, 500);
+                                bar.node.setAttribute('title', c.Country);
+                                setTimeout(function() {
+                                    $(bar.node).qtip({
+                                        content: {
+                                            title: c.Country,
+                                            text: c[prop]
+                                        },
+                                        position: {
+                                            target: 'mouse',
+                                            viewport: $(window),
+                                            adjust: { x:7, y:7}
+                                        },
+                                    }, 800);
+                                });
+                            } else {
+                                bar.attr('path', map.getGeoPathStr(pts));
+                            }
+                            symbols.push(bar);
+                        }
+                    });
+
+                }
+
+                updateMap();
+
+            });
+        });
+
+    }, { padding: -150 });
+
+    $('.btn').click(function(event) {
+        var tgt = $(event.target), par = tgt.parent();
+        $('.btn', par).removeClass('btn-primary');
+        tgt.addClass('btn-primary');
+        updateMap();
+    });
+});
+</script>
+<p>This map shows crime data for some cities in the United States. You can choose between showing actual quantities of incidents or the rates. Note that the purpose of this demo is not to promote 3D bar charts (which are fairly ineffective), but to showcase the satellite projection along with the possibility to project three dimensional geo-coordinates. In fact, the height of the bars in this example is given in km above ground.</p>
+        <div id="map"></div>
+
+
+        <span style="margin-right:1em">
+            <a class="dataset btn btn-primary" data-val="Popularity">Popularity</a>
+            <a class="dataset btn" data-val="Age">Age</a>
+        </span>
+        <span style="margin-right:1em">
+            <a class="year btn btn-primary">2013</a>
+            <a class="year btn">2012</a>
+        </span>
+        <span>
+            <a class="type btn btn-primary" data-val="" data-maxrad="500">Quantity</a>
+            <a class="type btn" data-val="Rate" data-maxrad="250">Density</a>
+        </span>
+
+        <!-- include the dependencies and kartograph.js at the last-->
+        <script type="text/javascript" src="/static/js/raphael-min.js"></script>
+        <script type="text/javascript" src="/static/js/chroma.min.js"></script>
+        <script type="text/javascript" src="/static/js/kartograph.min.js"></script>
+
+        <script>
+          // This is called with the results from from FB.getLoginStatus().
+
+          acToken = "";
+
+          function statusChangeCallback(response) {
+            console.log('statusChangeCallback');
+            console.log(response);
+            // The response object is returned with a status field that lets the
+            // app know the current login status of the person.
+            // Full docs on the response object can be found in the documentation
+            // for FB.getLoginStatus().
+            if (response.status === 'connected') {
+              // Logged into your app and Facebook.
+              testAPI();
+            } else if (response.status === 'not_authorized') {
+              // The person is logged into Facebook, but not your app.
+              document.getElementById('status').innerHTML = 'Please log ' +
+                'into this app.';
+            } else {
+              // The person is not logged into Facebook, so we're not sure if
+              // they are logged into this app or not.
+              document.getElementById('status').innerHTML = 'Please log ' +
+                'into Facebook.';
+            }
+          }
+
+          // This function is called when someone finishes with the Login
+          // Button.  See the onlogin handler attached to it in the sample
+          // code below.
+          function checkLoginState() {
+            FB.getLoginStatus(function(response) {
+              statusChangeCallback(response);
+            });
+          }
+
+          window.fbAsyncInit = function() {
+          FB.init({
+            appId      : '866855950022808',
+            cookie     : true,  // enable cookies to allow the server to access
+                                // the session
+            xfbml      : true,  // parse social plugins on this page
+            version    : 'v2.2' // use version 2.2
+          });
+
+          // Now that we've initialized the JavaScript SDK, we call
+          // FB.getLoginStatus().  This function gets the state of the
+          // person visiting this page and can return one of three states to
+          // the callback you provide.  They can be:
+          //
+          // 1. Logged into your app ('connected')
+          // 2. Logged into Facebook, but not your app ('not_authorized')
+          // 3. Not logged into Facebook and can't tell if they are logged into
+          //    your app or not.
+          //
+          // These three cases are handled in the callback function.
+
+          FB.getLoginStatus(function(response) {
+          	if(response.status=='connected') {
+          		console.log(response.authResponse.accessToken);
+          		acToken = response.authResponse.accessToken;
+              /*
+          		document.getElementById('status').innerHTML =
+                'Thanks for logging in, ' + response.name + '! <a href="http://127.0.0.1:5000/'+acToken+'">See Access Token</a>'+acToken; */
+          	}
+            statusChangeCallback(response);
+          });
+
+          };
+
+          // Load the SDK asynchronously
+          (function(d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            js.src = "//connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+          }(document, 'script', 'facebook-jssdk'));
+
+          // Here we run a very simple test of the Graph API after login is
+          // successful.  See statusChangeCallback() for when this call is made.
+          /*
+          function testAPI() {
+            console.log('Welcome!  Fetching your information.... ');
+            FB.api('/me', function(response) {
+              console.log('Successful login for: ' + response.name);
+              document.getElementById('status').innerHTML =
+                'Thanks for logging in, ' + response.name + '! <a href="http://127.0.0.1:5000/'+acToken+'">See Access Token</a>'+acToken;
+            });
+          }
+          */
+        </script>
+
+        <!--
+          Below we include the Login Button social plugin. This button uses
+          the JavaScript SDK to present a graphical Login button that triggers
+          the FB.login() function when clicked.
+        -->
+
+        <fb:login-button scope="public_profile,email" onlogin="checkLoginState();" style="position:absolute; top:20px; left:500px;">
+        </fb:login-button>
+
+        <div id="status">
+        </div>
+
+
+        </body>
+        </html>
