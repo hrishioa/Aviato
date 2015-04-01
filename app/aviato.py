@@ -1,18 +1,24 @@
 #from facebook import *
 import requests, json, sys
-<<<<<<< HEAD
+from aviatolib import *
 
 verbose=True
-=======
 from nltk.stem import WordNetLemmatizer
 import nltk
 
 verbose=False
 
 wordnet_lemmatizer = WordNetLemmatizer()
->>>>>>> 7beb4e0751c660d82b02727e9cddb3a37cdd4c7d
 
 KBase = {}
+
+human = {}
+country = {}
+keyword = {'surf': 0, 'kayaking': 0, 'roller coaster': 0, 'cruise': 0, 'snowboard': 0, 'outdoor': 0, 'skiing': 0, 'run': 0, 'sport': 0, 'mountain': 0, 'resort': 0, 'movie': 0, 'museum': 0, 'aquatic sports': 0, 'camp': 0, 'zoo': 0, 'romance': 0, 'religion': 0, 'hill': 0, 'beach': 0, 'temple': 0, 'spa': 0, 'shopping': 0, 'city': 0, 'dive': 0, 'wildlife': 0, 'urban exploration': 0, 'snorkel': 0, 'outdoor sports': 0, 'trek': 0, 'carnival': 0, 'hike': 0, 'casino': 0, 'yacht': 0, 'wind surfing': 0, 'jet ski': 0, 'mall': 0, 'indoor sports': 0, 'climb': 0, 'swimming': 0, 'history': 0}
+commercial = {}
+connMatrix = {}
+
+
 
 keywords = ['Temple','Beach','Casino','Romance',
 'History','Museum','Zoo','Spa','Shopping','Mall','Roller Coaster','Carnival','Skiing','Mountain','Hill',
@@ -56,8 +62,20 @@ if len(sys.argv)>2:
 			deftoken = abdullah_token
 			out_filename = "Abdulla"
 		print "User selected: %s" % out_filename
-<<<<<<< HEAD
-=======
+
+def addConnection(nodeA,nodeB,reversible=True):
+	if(nodeA in connMatrix):
+		if(not (nodeB in connMatrix[nodeA])):
+			connMatrix[nodeA].append(nodeB)
+	else:
+		connMatrix[nodeA] = [nodeB]
+
+	if(reversible==True):
+		if(nodeB in connMatrix):
+			if(not (nodeA in connMatrix[nodeB])):
+				connMatrix[nodeB].append(nodeA)
+		else:
+			connMatrix[nodeB] = [nodeA]		
 
 #################################################
 
@@ -72,8 +90,6 @@ def getKWJSON(keywords=keywords):
 		pos = 'v' if tag[i][1][0].lower()=='v' else 'n'
 		norm_kw = str(wordnet_lemmatizer.lemmatize(keywords[i].lower(),pos=pos))
 		kw_json[norm_kw] = 0
->>>>>>> 7beb4e0751c660d82b02727e9cddb3a37cdd4c7d
-
 #################################################
 
 def getKWJSON(keywords=keywords):
@@ -118,6 +134,9 @@ def getFriendData(fid, token=deftoken, deepScrub=False):
 	
 	data = getJSONFriend(fid,token)
 
+	if not fid in human:
+		human['fid'] = json.loads(requests.get('https://graph.facebook.com/%s/?access_token=%s'%(fid,token)).content)
+
 	db = {}
 	db['base_id'] = fid
 	db[fid] = {}
@@ -134,10 +153,44 @@ def getFriendData(fid, token=deftoken, deepScrub=False):
 		for i in range(0,numPhotos):
 			try:
 				db[fid]['location'][len(db[fid]['location'])] = data['data'][i]['place']
+
+				if('country' in data['data'][i]['place']['location']):
+					if not (data['data'][i]['place']['location']['country'] in country):
+						country[data['data'][i]['place']['location']['country']] = 	[data['data'][i]['place']]
+					else:
+						country[data['data'][i]['place']['location']['country']].append(data['data'][i]['place'])
+					
+					addConnection(data['data'][i]['place']['location']['country'],fid)
+
 				if(verbose==True):
 					print "Added location info for user %s" % (fid)
 			except:
 				continue
+
+			#extract keywords
+			desc = ""
+			if('name' in data['data'][i]):
+				desc = data['data'][i]['name']
+
+			try:
+				comments_no = len(data['data'][i]['comments']['data'])
+				if(comments_no<1):
+					continue
+				all_comments = desc+" "
+				for j in range(0,comments_no):
+					all_comments = all_comments+str(data['data'][i]['comments']['data'][j]['message'])+" "
+
+				#look for keywords in the comments
+				for key,value in keyword.items():
+					if key in all_comments:
+						keyword[key] = value+1
+						if('country' in data['data'][i]['place']['location']):
+							addConnection(data['data'][i]['place']['location']['country'],key)
+						addConnection(key,fid)
+
+			except:
+				if(verbose==True):
+					print "Comment data not found at "+str(i)
 
 		try:
 			if not('next' in data['paging']):
@@ -153,8 +206,6 @@ def getFriendData(fid, token=deftoken, deepScrub=False):
 			if(verbose==True):
 				print "Got next page:"
 
-<<<<<<< HEAD
-
 def getData(token=deftoken,deepScrub=False):
 	#first get user data
 	base_user = getUser()
@@ -165,20 +216,11 @@ def getData(token=deftoken,deepScrub=False):
 	db['base_id'] = base_user['id']
 	db[base_user['id']]['profile'] = getJSON('')
 
-=======
-
-def getData(token=deftoken,deepScrub=False):
-	#first get user data
-	base_user = getUser()
-
-	#initialize database and add users
-	db = {}
-	db[base_user['id']] = {}
-	db['base_id'] = base_user['id']
-	db[base_user['id']]['profile'] = getJSON('')
-
->>>>>>> 7beb4e0751c660d82b02727e9cddb3a37cdd4c7d
 	db[base_user['id']]['keywords'] = getKWJSON()
+
+	#add to human database
+	if not base_user['id'] in human:
+		human[base_user['id']] = db[base_user['id']]['profile']
 
 	#Get Photos first to aggregate location data
 
@@ -210,7 +252,8 @@ def getData(token=deftoken,deepScrub=False):
 			location = False
 
 			try:
-				location = photos['photos']['data'][i]['place']
+				location = photos['photos']['data'][i]['place']				
+
 			except:
 				if(verbose==True):
 					print "location data not found at "+str(i)
@@ -220,6 +263,15 @@ def getData(token=deftoken,deepScrub=False):
 				db[base_user['id']]['location'][loc_pointer]  = location
 				loc_pointer+=1	
 
+				#add to locations
+				if('country' in photos['photos']['data'][i]['place']):
+					if not photos['photos']['data'][i]['place']['location']['country'] in country:
+						country[photos['photos']['data'][i]['place']['location']['country']] = 	[photos['photos']['data'][i]['place']]
+					else:	
+						country[photos['photos']['data'][i]['place']['location']['country']].append(photos['photos']['data'][i]['place'])
+					
+					addConnection(photos['photos']['data'][i]['place']['location']['country'],db['base_id'])
+
 				#Also add the location to any people tagged here
 				for k in range(0,len(photos['photos']['data'][i]['tags']['data'])):
 					if not( 'id' in photos['photos']['data'][i]['tags']['data'][k]):
@@ -228,6 +280,12 @@ def getData(token=deftoken,deepScrub=False):
 						continue
 
 					tagged_id = photos['photos']['data'][i]['tags']['data'][k]['id']
+
+					if('country' in location):
+						if(not tagged_id in human):
+							human[tagged_id] = json.loads(requests.get('https://graph.facebook.com/%s/?access_token=%s'%(tagged_id,token)).content)
+						addConnection(tagged_id, location['country'])
+
 					if(tagged_id == db['base_id']):
 						if(verbose==True):
 							print "Tagger: tagged_id is the same as base_id, skipping"
@@ -254,6 +312,8 @@ def getData(token=deftoken,deepScrub=False):
 				for key,value in db[base_user['id']]['keywords'].items():
 					if key in desc:
 						db[base_user['id']]['keywords'][key] += 1
+
+						#TODO: Add the keyword links to the users tagged as well
 			except:
 				if(verbose==True):
 					print "name data not found at "+str(i)
@@ -263,12 +323,20 @@ def getData(token=deftoken,deepScrub=False):
 				comments_no = len(photos['photos']['data'][i]['comments']['data'])
 				if(comments_no<1):
 					continue
-				all_comments = ""
+				all_comments = desc+" "
 				for j in range(0,comments_no):
 					all_comments = all_comments+str(photos['photos']['data'][i]['comments']['data'][j]['message'])+" "
 				for key,value in db[base_user['id']]['keywords'].items():
 					if key in all_comments:
 						db[base_user['id']]['keywords'][key] += 1
+
+				for key,value in keyword.items():
+					if key in all_comments:
+						keyword[key] = value+1
+						if('country' in location):
+							addConnection(location['country'],key)
+						addConnection(key,base_user['id'])
+
 			except:
 				if(verbose==True):
 					print "Comment data not found at "+str(i)
@@ -284,8 +352,12 @@ def getData(token=deftoken,deepScrub=False):
 		for key,value in db.items():
 			if(key==db['base_id'] or key=='base_id' or value=='base_id'):
 				continue
+			if(not key in human):
+							human[key] = json.loads(requests.get('https://graph.facebook.com/%s/?access_token=%s'%(key,token)).content)
 			if(verbose==True):
-				print "Getting friend data for %s" % key
+				name = str(human[key]['first_name']) if('first_name' in human[key]) else "" 
+				print "Getting friend data for " + str(key)+ ": "+name
+			addConnection(key,base_user['id'])
 			deepdata = getFriendData(key,token)
 			try:
 				if(len(deepdata[deepdata['base_id']]['location'])>1):
